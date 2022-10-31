@@ -50,8 +50,6 @@ func parseDB() {
 	var newUsluga usluga
 	rows, _ := Db.Query(`SELECT * FROM avito_users ORDER BY id`)
 	rows_uslugi, _ := Db.Query(`SELECT * FROM uslugi ORDER BY id`)
-	defer rows.Close()
-	defer rows_uslugi.Close()
 	for rows.Next() {
 		err := rows.Scan(&newClient.Id, &newClient.Balance)
 		clients = append(clients, newClient)
