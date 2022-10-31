@@ -114,15 +114,6 @@ func getAlbums(c *gin.Context) {
 	// }
 	c.IndentedJSON(http.StatusOK, clients)
 }
-func postAlbums(c *gin.Context) {
-	var NewAlbum client
-	if err := c.BindJSON(&NewAlbum); err != nil {
-		return
-	}
-
-	clients = append(clients, NewAlbum)
-	c.IndentedJSON(http.StatusCreated, NewAlbum)
-}
 
 func addFundsToClient(c *gin.Context) {
 	Db, err := sql.Open("postgres", connStr)
@@ -135,37 +126,41 @@ func addFundsToClient(c *gin.Context) {
 		return
 	}
 	i, _ := strconv.Atoi(AddingFunds.Id)
-	if Contains(clients, AddingFunds.Id) {
-		clients[i-1].Balance += AddingFunds.Balance
-		c.IndentedJSON(http.StatusCreated, clients[i-1])
-		Db.Exec(`UPDATE avito_users SET balance=$1 WHERE id=$2 ORDER BY id`, clients[i-1].Balance, AddingFunds.Id)
+	if AddingFunds.Balance > 0 {
+		if Contains(clients, AddingFunds.Id) {
+			clients[i-1].Balance += AddingFunds.Balance
+			c.IndentedJSON(http.StatusCreated, clients[i-1])
+			Db.Exec(`UPDATE avito_users SET balance=$1 WHERE id=$2 ORDER BY id`, clients[i-1].Balance, AddingFunds.Id)
+		} else {
+			clients = append(clients, AddingFunds)
+			reserved = append(reserved, client{Id: AddingFunds.Id, Balance: 0})
+			c.IndentedJSON(http.StatusCreated, AddingFunds)
+			Db.Exec(`INSERT INTO avito_users VALUES($1,$2)`, AddingFunds.Id, AddingFunds.Balance)
+			Db.Exec(`INSERT INTO reserved_accounts VALUES($1,$2)`, AddingFunds.Id, "0")
+		}
 	} else {
-		clients = append(clients, AddingFunds)
-		reserved = append(reserved, client{Id: AddingFunds.Id, Balance: 0})
-		c.IndentedJSON(http.StatusCreated, AddingFunds)
-		Db.Exec(`INSERT INTO avito_users VALUES($1,$2)`, AddingFunds.Id, AddingFunds.Balance)
-		Db.Exec(`INSERT INTO reserved_accounts VALUES($1,$2)`, AddingFunds.Id, "0")
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "the amount must be positive"})
 	}
 }
 
-func getStats(c *gin.Context) {
-	id := c.Param("id")
-	var newTransact operation
-	for _, a := range clients {
-		if a.Id == id {
-			rows, _ := Db.Query(`SELECT * FROM transactions WHERE id_of_client=$1`, id)
-			for rows.Next() {
-				err := rows.Scan(&newTransact.Id_transaction, &newTransact.Id_client,
-					&newTransact.Id_usluga, &newTransact.Price)
-				operations = append(operations, newTransact)
-				if err != nil {
-					log.Fatal(err)
-				}
-			}
-		}
-	}
-	c.IndentedJSON(http.StatusOK, operations)
-}
+// func getStats(c *gin.Context) {
+// 	id := c.Param("id")
+// 	var newTransact operation
+// 	for _, a := range clients {
+// 		if a.Id == id {
+// 			rows, _ := Db.Query(`SELECT * FROM transactions WHERE id_of_client=$1`, id)
+// 			for rows.Next() {
+// 				err := rows.Scan(&newTransact.Id_transaction, &newTransact.Id_client,
+// 					&newTransact.Id_usluga, &newTransact.Price)
+// 				operations = append(operations, newTransact)
+// 				if err != nil {
+// 					log.Fatal(err)
+// 				}
+// 			}
+// 		}
+// 	}
+// 	c.IndentedJSON(http.StatusOK, operations)
+// }
 func reserveOp(c *gin.Context) {
 	Db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -213,8 +208,6 @@ func acceptOp(c *gin.Context) {
 		panic(err)
 	}
 	clientId, _ := strconv.Atoi(newOp.Id_client)
-	//OpId, _ := strconv.Atoi(newOp.Id_transaction)
-	//UslId, _ := strconv.Atoi(newOp.Id_usluga)
 	if ContainsOp(operations, newOp.Id_transaction) {
 		reserved[clientId-1].Balance -= newOp.Price
 		_, err = Db.Exec(`UPDATE reserved_accounts SET balance=$1 WHERE id=$2`, reserved[clientId-1].Balance, clientId)
@@ -240,9 +233,7 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/clients", getAlbums)
-	//router.POST("/clients", postAlbums)
 	router.POST("/clients/addfunds/", addFundsToClient)
-	//router.GET("/clietns/stats/:id", getStats)
 	router.GET("/clients/:id", getClientByID)
 	router.POST("/clients/reserve", reserveOp)
 	router.POST("/clients/accept", acceptOp)
