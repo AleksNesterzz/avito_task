@@ -9,7 +9,7 @@ Framework:gin
 GET-запрос для показа полного списка клиентов микросервиса| http://localhost:8080/clients
 POST-запрос для добавления средств на счет (если клиент новый, то создается новое поле в бд) http://localhost/clients/addfunds {"Id":"1","Balance":100} -H "Content-Type: application/json"
 GET-запрос для показа баланса конкретного клиента по его ID | http://localhost:8080/clients/:id
-POST-запрос для резервирования средств на отдельном счете | http://locallhosy:8080/clients/reserve {"Id_client":"1","usluga":"1","transaction":"2","Price":100} -H "Content-Type: application/json"
+POST-запрос для резервирования средств на отдельном счете | http://locallhost:8080/clients/reserve {"Id_client":"1","usluga":"1","transaction":"2","Price":100} -H "Content-Type: application/json"
 POST-запрос для снятия денег с отдельного счета | http://localhost:8080/clients/accept {"Id_client":"1","usluga":"1","transaction":"2","Price":100} -H "Content-Type: application/json"
 
 Структура БД:
