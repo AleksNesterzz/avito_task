@@ -87,31 +87,7 @@ func ContainsOp(x []operation, y string) bool {
 	return false
 }
 
-func getAlbums(c *gin.Context) {
-	//var newClient client
-	// var newUsluga usluga
-	// connStr := "user=postgres password=hbdtkjy2012 dbname=postgres sslmode=disable"
-	// db, err := sql.Open("postgres", connStr)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer db.Close()
-	// rows, _ := db.Query(`SELECT * FROM avito_users`)
-	// rows_uslugi, _ := db.Query(`SELECT * FROM uslugi`)
-	// for rows.Next() {
-	// 	err := rows.Scan(&newClient.Id, &newClient.Balance)
-	// 	clients = append(clients, newClient)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }
-	// for rows_uslugi.Next() {
-	// 	err := rows_uslugi.Scan(&newUsluga.Id, &newUsluga.Name)
-	// 	uslugi = append(uslugi, newUsluga)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }
+func getClient(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, clients)
 }
 
@@ -232,7 +208,7 @@ func main() {
 	parseDB()
 	router := gin.Default()
 
-	router.GET("/clients", getAlbums)
+	router.GET("/clients", getClient)
 	router.POST("/clients/addfunds/", addFundsToClient)
 	router.GET("/clients/:id", getClientByID)
 	router.POST("/clients/reserve", reserveOp)
