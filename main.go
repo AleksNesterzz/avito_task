@@ -34,7 +34,7 @@ type operation struct {
 }
 
 var Db *sql.DB
-var connStr = "user=postgres password=hbdtkjy2012 dbname=postgres sslmode=disable"
+var connStr = "user=postgres password=mypass dbname=postgres sslmode=disable"
 var clients = make([]client, 0)
 var reserved = make([]client, 0)
 var operations = make([]operation, 0)
