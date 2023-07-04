@@ -1,6 +1,6 @@
 package myModule
 
-import(
+import (
 	"fmt"
 )
 
